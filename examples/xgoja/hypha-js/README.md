@@ -12,20 +12,25 @@ xgoja doctor -f examples/xgoja/hypha-js/xgoja.yaml
 
 ## Build
 
-The generated module needs a local replace for `go-go-goja` during
-development (go-go-goja is not yet tagged). Use `--xgoja-replace`:
+Both `go-go-goja` (v0.10.1) and `hypha-cli` (v0.1.0) are tagged, so the
+build needs **no local replaces** — just tell xgoja the go-go-goja version to
+require (the default `v0.0.0` is a placeholder that does not resolve):
 
 ```bash
-xgoja build -f examples/xgoja/hypha-js/xgoja.yaml \
-  --xgoja-replace /home/manuel/code/wesen/go-go-golems/go-go-goja
+xgoja build -f examples/xgoja/hypha-js/xgoja.yaml --xgoja-version v0.10.1
 ```
 
-`hypha-cli` itself is published as `v0.1.0` (tagged on
-`go-go-golems/hypha-cli` main), so no local replace is needed for it —
-`xgoja build` resolves `github.com/go-go-golems/hypha-cli@v0.1.0` from the
-Go module proxy. (If you are developing hypha-cli itself and want uncommitted
-changes, add `go mod edit -replace github.com/go-go-golems/hypha-cli=<path>`
-in the generated workspace.)
+This resolves `github.com/go-go-golems/hypha-cli@v0.1.0` and
+`github.com/go-go-golems/go-go-goja@v0.10.1` from the Go module proxy and
+emits `dist/hypha-js`. (If you are developing hypha-cli or go-go-goja locally
+and want uncommitted changes, use `--xgoja-replace <path>` instead of
+`--xgoja-version`.)
+
+Type declarations work the same way:
+
+```bash
+xgoja gen-dts -f examples/xgoja/hypha-js/xgoja.yaml --out hypha.d.ts --xgoja-version v0.10.1
+```
 
 ## Run
 
