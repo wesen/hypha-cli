@@ -75,6 +75,13 @@ func (module) Loader(vm *goja.Runtime, moduleObj *goja.Object) {
 	rt.mustSet(exports, "checkpoints", rt.checkpointsQuery)
 	rt.mustSet(exports, "verify", rt.verifyQuery)
 
+	// Asks (ISO board) via MCP /mcp tools.
+	rt.mustSet(exports, "postISO", rt.postISO)
+	rt.mustSet(exports, "replyAsk", rt.replyAsk)
+	rt.mustSet(exports, "closeAsk", rt.closeAsk)
+	rt.mustSet(exports, "listAsks", rt.listAsks)
+	rt.mustSet(exports, "getAsk", rt.getAsk)
+
 	views := vm.NewObject()
 	rt.mustSet(views, "balance", rt.balance)
 	rt.mustSet(views, "trust", rt.trust)

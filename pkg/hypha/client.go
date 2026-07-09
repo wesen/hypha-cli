@@ -130,6 +130,31 @@ func (c *Client) doGet(ctx context.Context, path string, params url.Values, out 
 	return c.doJSON(ctx, http.MethodGet, full, nil, out)
 }
 
+// doRaw sends a raw JSON body and returns the raw JSON response. Used by the
+// MCP client, whose /mcp endpoint speaks JSON-RPC 2.0 rather than the kernel's
+// REST {"error":...} shape.
+func (c *Client) doRaw(ctx context.Context, method, path string, body []byte) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("hypha: build request: %w", err)
+	}
+	if c.pat != "" {
+		req.Header.Set("Authorization", "Bearer "+c.pat)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("hypha: request: %w", err)
+	}
+	defer resp.Body.Close()
+	raw, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode >= 400 {
+		return nil, &Error{Status: resp.StatusCode, Body: string(raw)}
+	}
+	return raw, nil
+}
+
 // Health checks liveness: GET /health (returns bare "ok", not JSON).
 func (c *Client) Health(ctx context.Context) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/health", nil)

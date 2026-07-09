@@ -185,3 +185,29 @@ func objectToStringSlice(vm *goja.Runtime, v goja.Value) []string {
 }
 
 var _ = strconv.Itoa
+
+// --- Asks (ISO/gig) via MCP /mcp tools ---
+//
+// The ask domain (ISO board: post_iso, reply_ask, close_ask, list_asks,
+// get_ask) lives behind the MCP endpoint, not the REST /api/v1/events log.
+// These methods call client.MCP() and return Go-backed results.
+
+func (r *runtime) postISO(body string, topics []string) (*hypha.Ask, error) {
+	return r.client.MCP().PostISO(context.Background(), hypha.PostISOOptions{Body: body, Topics: topics})
+}
+
+func (r *runtime) replyAsk(id, body string) (*hypha.AskReply, error) {
+	return r.client.MCP().ReplyAsk(context.Background(), id, body)
+}
+
+func (r *runtime) closeAsk(id, helped, note string) error {
+	return r.client.MCP().CloseAsk(context.Background(), hypha.CloseAskOptions{ID: id, Helped: helped, Note: note})
+}
+
+func (r *runtime) listAsks(flavor, status string) (*hypha.AskList, error) {
+	return r.client.MCP().ListAsks(context.Background(), flavor, status)
+}
+
+func (r *runtime) getAsk(id string) (*hypha.AskThread, error) {
+	return r.client.MCP().GetAsk(context.Background(), id)
+}
