@@ -12,24 +12,20 @@ xgoja doctor -f examples/xgoja/hypha-js/xgoja.yaml
 
 ## Build
 
-The generated module needs local replaces for both `go-go-goja` and
-`hypha-cli` during development (neither is on the public proxy with the
-provider package yet). Use `--xgoja-replace` for go-go-goja, then add the
-hypha-cli replace manually:
+The generated module needs a local replace for `go-go-goja` during
+development (go-go-goja is not yet tagged). Use `--xgoja-replace`:
 
 ```bash
 xgoja build -f examples/xgoja/hypha-js/xgoja.yaml \
-  --xgoja-replace /home/manuel/code/wesen/go-go-golems/go-go-goja \
-  --keep-work
-# then in the printed build workspace:
-cd <build-workspace>
-go mod edit -replace github.com/go-go-golems/hypha-cli=/home/manuel/code/wesen/go-go-golems/hypha-cli
-go mod tidy && go build -buildvcs=false .
-./hypha-js run examples/xgoja/hypha-js/scripts/smoke.js
+  --xgoja-replace /home/manuel/code/wesen/go-go-golems/go-go-goja
 ```
 
-Once `hypha-cli` (with `pkg/xgoja/providers/hypha`) is published, the manual
-replace is unnecessary and a plain `xgoja build` works.
+`hypha-cli` itself is published as `v0.1.0` (tagged on
+`go-go-golems/hypha-cli` main), so no local replace is needed for it —
+`xgoja build` resolves `github.com/go-go-golems/hypha-cli@v0.1.0` from the
+Go module proxy. (If you are developing hypha-cli itself and want uncommitted
+changes, add `go mod edit -replace github.com/go-go-golems/hypha-cli=<path>`
+in the generated workspace.)
 
 ## Run
 
