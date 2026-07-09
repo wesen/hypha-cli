@@ -1,0 +1,32 @@
+schema: xgoja/v2
+name: hypha-js
+app:
+  name: hypha-js
+go:
+  module: xgoja.generated/hypha-js
+  version: "1.26"
+workspace:
+  mode: auto
+providers:
+  - id: hypha
+    import: github.com/go-go-golems/hypha-cli/pkg/xgoja/providers/hypha
+    register: Register
+runtime:
+  modules:
+    - provider: hypha
+      name: hypha
+      as: hypha
+commands:
+  - id: eval
+    type: builtin.eval
+    name: eval
+  - id: run
+    type: builtin.run
+    name: run
+  - id: repl
+    type: builtin.repl
+    name: repl
+artifacts:
+  - id: binary
+    type: binary
+    output: dist/hypha-js
