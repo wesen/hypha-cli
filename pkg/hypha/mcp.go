@@ -148,17 +148,29 @@ func (m *MCPClient) ListAsks(ctx context.Context, flavor, status string) (*AskLi
 	return &out, nil
 }
 
-// AskThread is the get_ask payload: an ask plus its responses.
+// AskThread is the get_ask payload: the flat Ask fields plus a top-level
+// body and a thread of reply events. The real MCP shape is a flat ask with
+// "body" and "thread" at the top level (no nested "ask" object), so AskThread
+// embeds Ask to capture all the ask fields.
 type AskThread struct {
-	Ask      Ask          `json:"ask"`
-	Replies  []AskReply   `json:"replies"`
+	Ask    // flat ask fields (AskID, Status, Topics, Author, ...)
+	Body   string     `json:"body"`
+	Thread []AskReply `json:"thread"`
 }
 
+// AskReply is one reply event in an ask thread. It mirrors the event shape.
 type AskReply struct {
-	ID        string `json:"id"`
-	Author    string `json:"author"`
-	Body      string `json:"body"`
-	CreatedAt int64  `json:"created_at"`
+	ID        string   `json:"id"`
+	Ts        int64    `json:"ts"`
+	Actor     string   `json:"actor"`
+	Verb      string   `json:"verb"`
+	Kind      *string  `json:"kind"`
+	Target    *string  `json:"target"`
+	Ref       *string  `json:"ref"`
+	Topics   []string `json:"topics"`
+	Audience string   `json:"audience"`
+	Body     string   `json:"body"`
+	Redacted int      `json:"redacted"`
 }
 
 // GetAsk calls the get_ask MCP tool (an ask plus its replies).
