@@ -4,6 +4,7 @@
 package hyphaprovider
 
 import (
+	"github.com/go-go-golems/go-go-goja/pkg/tsgen/spec"
 	"encoding/json"
 	"fmt"
 
@@ -18,6 +19,17 @@ import (
 // (providers[].id: hypha).
 const PackageID = "hypha"
 
+// nativeModuleTypeScript returns the module's TypeScript declaration
+// descriptor when it implements modules.TypeScriptDeclarer, so xgoja gen-dts
+// can emit a hypha.d.ts. Mirrors the core provider's helper.
+func nativeModuleTypeScript(mod modules.NativeModule) *spec.Module {
+	declarer, ok := mod.(modules.TypeScriptDeclarer)
+	if !ok {
+		return nil
+	}
+	return declarer.TypeScriptModule()
+}
+
 // Register exposes the hypha module to xgoja-generated binaries.
 // It is referenced from xgoja.yaml as `register: Register`.
 func Register(registry *providerapi.ProviderRegistry) error {
@@ -30,6 +42,7 @@ func Register(registry *providerapi.ProviderRegistry) error {
 			Name:        "hypha",
 			DefaultAs:   "hypha",
 			Description: mod.Doc(),
+			TypeScript:  nativeModuleTypeScript(mod),
 			ConfigSchema: json.RawMessage(`{
   "type": "object",
   "properties": {
