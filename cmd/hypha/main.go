@@ -1,12 +1,15 @@
 package main
 
 import (
+	"os"
+
 	gcmds "github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds/logging"
 	"github.com/go-go-golems/glazed/pkg/help"
 	help_cmd "github.com/go-go-golems/glazed/pkg/help/cmd"
 	"github.com/go-go-golems/hypha-cli/cmd/hypha/cmds"
+	"github.com/go-go-golems/hypha-cli/pkg/hypha"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +23,10 @@ structured output (JSON/YAML/CSV/table) via Glazed. Configure the connection
 with --base-url/--pat, env (HYPHA_BASE_URL/HYPHA_PAT), or
 ~/.config/hypha/config.json (mode 600, override with HYPHA_CONFIG).`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		return logging.InitLoggerFromCobra(cmd)
+		if err := logging.InitLoggerFromCobra(cmd); err != nil {
+			return err
+		}
+		return loadHyphaConfig()
 	},
 }
 
@@ -79,6 +85,18 @@ func main() {
 	cobra.CheckErr(addCmd(rootCmd, mustBuild(cmds.NewCheckpointsCommand)))
 	cobra.CheckErr(addCmd(rootCmd, mustBuild(cmds.NewVerifyCommand)))
 
+	// Asks (ISO/gig board) via MCP
+	asks := &cobra.Command{Use: "asks", Short: "Ask board (ISO/gig) via MCP: list, get, reply, close"}
+	rootCmd.AddCommand(asks)
+	cobra.CheckErr(addCmd(asks, mustBuild(cmds.NewAsksListCommand)))
+	cobra.CheckErr(addCmd(asks, mustBuild(cmds.NewAsksGetCommand)))
+	cobra.CheckErr(addCmd(asks, mustBuild(cmds.NewAsksReplyCommand)))
+	cobra.CheckErr(addCmd(asks, mustBuild(cmds.NewAsksCloseCommand)))
+
+	iso := &cobra.Command{Use: "iso", Short: "Post an ISO to the circle board (MCP)"}
+	rootCmd.AddCommand(iso)
+	cobra.CheckErr(addCmd(iso, mustBuild(cmds.NewIsoPostCommand)))
+
 	cobra.CheckErr(rootCmd.Execute())
 }
 
@@ -100,5 +118,28 @@ func addCmd(parent *cobra.Command, c gcmds.Command) error {
 		return err
 	}
 	parent.AddCommand(cc)
+	return nil
+}
+
+// loadHyphaConfig reads ~/.config/hypha/config.json (or $HYPHA_CONFIG) and seeds
+// the HYPHA_* env vars for any field not already set. The connection section's
+// AppName=hypha env source then picks them up as defaults, so the precedence is:
+// explicit --flags > env (already set) > config file > built-in defaults.
+// A missing or malformed config file is logged but not fatal.
+func loadHyphaConfig() error {
+	cfg, err := hypha.LoadConfig()
+	if err != nil {
+		// Malformed config is not fatal; flags/env can still supply values.
+		return nil
+	}
+	if cfg.BaseURL != "" && os.Getenv("HYPHA_BASE_URL") == "" {
+		_ = os.Setenv("HYPHA_BASE_URL", cfg.BaseURL)
+	}
+	if cfg.PAT != "" && os.Getenv("HYPHA_PAT") == "" {
+		_ = os.Setenv("HYPHA_PAT", cfg.PAT)
+	}
+	if cfg.Handle != "" && os.Getenv("HYPHA_HANDLE") == "" {
+		_ = os.Setenv("HYPHA_HANDLE", cfg.Handle)
+	}
 	return nil
 }
