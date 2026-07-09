@@ -38,7 +38,7 @@ logcopter-generate:
 	GOWORK=off go generate ./...
 
 logcopter-check:
-	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.XXX -strip-prefix github.com/go-go-golems/XXX -check ./pkg/...
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.hypha-cli -strip-prefix github.com/go-go-golems/hypha-cli -check ./pkg/...
 
 goreleaser:
 	GOWORK=off goreleaser release $(GORELEASER_ARGS) $(GORELEASER_TARGET)
@@ -54,7 +54,7 @@ tag-patch:
 
 release:
 	git push origin --tags
-	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/XXX@$(shell svu current)
+	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/hypha-cli@$(shell svu current)
 
 bump-go-go-golems:
 	@deps="$$(awk '/^require[[:space:]]+github\.com\/go-go-golems\// { print $$2 } /^[[:space:]]*github\.com\/go-go-golems\// { print $$1 }' go.mod | sort -u)"; \
@@ -67,7 +67,7 @@ bump-go-go-golems:
 	fi
 	GOWORK=off go mod tidy
 
-XXX_BINARY=$(shell which XXX)
+HYPHA_BINARY=$(shell which hypha)
 install:
-	GOWORK=off go build -o ./dist/XXX ./cmd/XXX && \
-		cp ./dist/XXX $(XXX_BINARY)
+	GOWORK=off go build -o ./dist/hypha ./cmd/hypha && \
+		cp ./dist/hypha $(HYPHA_BINARY)

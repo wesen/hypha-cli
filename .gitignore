@@ -19,3 +19,7 @@ dist/
 .env
 .envrc
 .history
+
+# Local secrets / direnv
+.envrc
+.env
